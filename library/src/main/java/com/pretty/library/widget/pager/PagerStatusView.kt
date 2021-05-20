@@ -62,6 +62,10 @@ class PagerStatusView @JvmOverloads constructor(
         childViewId: Int
     ): View? {
         return loadingChildView[childViewId] ?: try {
+            val loadingView = getLoadingStatusView()
+            check(loadingView != null) {
+                "Loading view is not initialize. Please call setLoadingView"
+            }
             val childView = loadingView.findViewById<View>(childViewId)
             loadingChildView.put(childViewId, childView)
             childView
@@ -74,6 +78,10 @@ class PagerStatusView @JvmOverloads constructor(
         childViewId: Int
     ): View? {
         return emptyChildView[childViewId] ?: try {
+            val emptyView = getEmptyStatusView()
+            check(emptyView != null) {
+                "Empty view is not initialize. Please call setEmptyView"
+            }
             val childView = emptyView.findViewById<View>(childViewId)
             emptyChildView.put(childViewId, childView)
             childView
@@ -86,12 +94,30 @@ class PagerStatusView @JvmOverloads constructor(
         childViewId: Int
     ): View? {
         return errorChildView[childViewId] ?: try {
+            val errorView = getErrorStatusView()
+            check(errorView != null) {
+                "Error view is not initialize. Please call setErrorView"
+            }
             val childView = errorView.findViewById<View>(childViewId)
             errorChildView.put(childViewId, childView)
             childView
         } catch (e: Exception) {
             null
         }
+    }
+
+    /**
+     * 获取loadingStatusView
+     */
+    fun getLoadingStatusView(): View? {
+        if (::loadingView.isInitialized) {
+            return loadingView
+        }
+        if (loadingStatusView != null) {
+            loadingView = loadingStatusView!!
+            return loadingView
+        }
+        return null
     }
 
     /**
@@ -112,7 +138,8 @@ class PagerStatusView @JvmOverloads constructor(
         initializeValue: (T.() -> Unit)? = null,
         clickViewAction: (T.() -> Unit)? = null
     ) {
-        check(::loadingView.isInitialized) {
+        val loadingView = getLoadingStatusView()
+        check(loadingView != null) {
             "Loading view is not initialize. Please call setLoadingView"
         }
         val childView = loadingView.findViewById<T>(childViewId)
@@ -141,6 +168,20 @@ class PagerStatusView @JvmOverloads constructor(
     /***************************************************************/
 
     /**
+     * 获取空状态的view
+     */
+    fun getEmptyStatusView(): View? {
+        if (::emptyView.isInitialized) {
+            return emptyView
+        }
+        if (emptyStatusView != null) {
+            emptyView = emptyStatusView!!
+            return emptyView
+        }
+        return null
+    }
+
+    /**
      * 设置空页面的布局ID
      */
     fun setEmptyView(@LayoutRes layoutId: Int) {
@@ -156,8 +197,9 @@ class PagerStatusView @JvmOverloads constructor(
         initializeValue: (T.() -> Unit)? = null,
         clickViewAction: (T.() -> Unit)? = null
     ) {
-        check(::emptyView.isInitialized) {
-            "Empty view is not initialize. Please call setLoadingView"
+        val emptyView = getEmptyStatusView()
+        check(emptyView != null) {
+            "Empty view is not initialize. Please call setEmptyView"
         }
         val childView = emptyView.findViewById<T>(childViewId)
         check(childView != null) {
@@ -199,6 +241,20 @@ class PagerStatusView @JvmOverloads constructor(
     /***************************************************************/
 
     /**
+     * 获取错误状态View
+     */
+    fun getErrorStatusView(): View? {
+        if (::errorView.isInitialized) {
+            return errorView
+        }
+        if (errorStatusView != null) {
+            errorView = errorStatusView!!
+            return errorView
+        }
+        return null
+    }
+
+    /**
      * 设置错误页面布局ID
      */
     fun setErrorView(@LayoutRes layoutId: Int) {
@@ -214,8 +270,9 @@ class PagerStatusView @JvmOverloads constructor(
         initializeValue: (T.() -> Unit)? = null,
         clickViewAction: (T.() -> Unit)? = null
     ) {
-        check(::errorView.isInitialized) {
-            "Error view is not initialize."
+        val errorView = getErrorStatusView()
+        check(errorView != null) {
+            "Error view is not initialize. Please call setErrorView"
         }
         val childView = errorView.findViewById<T>(childViewId)
         initializeValue?.invoke(childView)
@@ -264,7 +321,8 @@ class PagerStatusView @JvmOverloads constructor(
                 removeAllViews()
                 when (status) {
                     PagerStatus.LOADING -> {
-                        if (::loadingView.isInitialized) {
+                        val loadingView = getLoadingStatusView()
+                        if (loadingView != null) {
                             addView(loadingView)
                             VERTICAL
                         } else {
@@ -272,7 +330,8 @@ class PagerStatusView @JvmOverloads constructor(
                         }
                     }
                     PagerStatus.EMPTY -> {
-                        if (::loadingView.isInitialized) {
+                        val emptyView = getEmptyStatusView()
+                        if (emptyView != null) {
                             addView(emptyView)
                             VERTICAL
                         } else {
@@ -280,7 +339,8 @@ class PagerStatusView @JvmOverloads constructor(
                         }
                     }
                     PagerStatus.ERROR -> {
-                        if (::loadingView.isInitialized) {
+                        val errorView = getErrorStatusView()
+                        if (errorView != null) {
                             addView(errorView)
                             VERTICAL
                         } else {
@@ -298,20 +358,35 @@ class PagerStatusView @JvmOverloads constructor(
 
     companion object {
 
+        internal var loadingStatusView: View? = null
         internal var loadingLayoutId = 0
+        internal var emptyStatusView: View? = null
         internal var emptyLayoutId = 0
+        internal var errorStatusView: View? = null
         internal var errorLayoutId = 0
 
         fun setLoadingLayout(@LayoutRes layoutId: Int) {
             this.loadingLayoutId = layoutId
         }
 
+        fun setLoadingStatusView(statusView: View) {
+            this.loadingStatusView = statusView
+        }
+
         fun setEmptyLayout(@LayoutRes layoutId: Int) {
             this.emptyLayoutId = layoutId
         }
 
+        fun setEmptyStatusView(statusView: View) {
+            this.emptyStatusView = statusView
+        }
+
         fun setErrorLayout(@LayoutRes layoutId: Int) {
             this.errorLayoutId = layoutId
+        }
+
+        fun setErrorStatusView(statusView: View) {
+            this.errorStatusView = statusView
         }
     }
 }
